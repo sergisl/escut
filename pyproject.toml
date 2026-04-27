@@ -1,7 +1,7 @@
 [project]
 name = "escut"
 version = "0.1.0"
-description = "Scalar BVP solver utilities for screening mechanisms (chameleon, Vainshtein, k-mouflage)."
+description = "Scalar BVP solver utilities for screening mechanisms (chameleon, Vainshtein, Phaedrus)."
 authors = [{ name = "sergisl" }]
 readme = "README.md"
 requires-python = ">=3.8"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Hi-COLACode/Qsolver"
+Homepage = "https://github.com/sergisl/escut"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
