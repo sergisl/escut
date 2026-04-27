@@ -1,0 +1,35 @@
+[project]
+name = "escut"
+version = "0.1.0"
+description = "Scalar BVP solver utilities for screening mechanisms (chameleon, Vainshtein, k-mouflage)."
+authors = [{ name = "sergisl" }]
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+dependencies = [
+  "numpy>=1.20",
+  "scipy>=1.8",
+  "matplotlib>=3.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/Hi-COLACode/Qsolver"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Treat the 'main' directory as the package root for 'escut'
+package-dir = {"escut" = "main"}
+
+[tool.setuptools.packages.find]
+# We use an explicit package mapping; avoid auto-discovery conflicts
+# (setuptools will consider 'escut' from package-dir above)
+
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+]
+

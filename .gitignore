@@ -1,0 +1,44 @@
+# ── Python bytecode ───────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ── Virtual environment ────────────────────────────────────────────────────────
+.venv/
+.venv.backup/
+venv/
+env/
+
+# ── Build / packaging artefacts ───────────────────────────────────────────────
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Jupyter notebook checkpoints ──────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Generated output files (large binaries / reproducible from notebooks) ─────
+notebooks/output/
+notebooks/archive-output/
+*.npz
+*.pdf
+*.png
+
+# ── macOS metadata ────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+
+# ── Editor / IDE ──────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# ── Test / coverage artefacts ─────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Environment files ─────────────────────────────────────────────────────────
+.env
