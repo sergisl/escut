@@ -1,11 +1,11 @@
 # escut
 
-<table border="0" cellpadding="10">
+<table style="border: none; border-collapse: collapse;" cellpadding="10">
 <tr>
-<td width="160"><img src="assets/escut.png" alt="escut logo" width="150"/></td>
-<td>
+<td style="border: none;" width="160"><img src="assets/escut.png" alt="escut logo" width="150"/></td>
+<td style="border: none;">
 
-**E**quation for **SC**reening with **U**nified **T**reatment &nbsp;·&nbsp; *Escut means shield in Catalan*
+**E**quation for **SC**reening with **U**nified **T**reatment &nbsp;·&nbsp; *(Escut means shield in Catalan)*
 
 A Python library for numerically solving the master equation for screening in luminal Horndeski gravity, including the Vainshtein, Chameleon and Phaedrus mechanisms.
 
@@ -22,7 +22,7 @@ $$
 with a smoothed top-hat density profile $\delta(x)$, where x is the dimensionless radial coordinate $x = r/R$, with $R$ being the radius of the source.
 
 | Coefficient | Physics |
-|---|---|---|
+|---|---|
 | `A` | Linear kinetic term |
 | `B`, `C` | Chameleon screening |
 | `F` | Vainshtein screening |
