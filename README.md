@@ -1,22 +1,30 @@
 # escut
 
+<p align="center">
+  <img src="assets/escut.png" alt="escut logo" width="300"/>
+</p>
+
 **E**quation for **SC**reening with **U**nified **T**reatment
 
-A lightweight Python library for numerically solving the master equation for screening in luminal Horndeski gravity, including the Vainshtein, Chameleon and Phaedrus mechanisms.
+*Escut* means shield in Catalan — a nod to the screening mechanisms the code is built to study.
 
-The code solves the dimensionless spherical boundary-value-problem (BVP) for a scalar field $Q(x)$, $x = r/R$:
+A Python library for numerically solving the master equation for screening in luminal Horndeski gravity, including the Vainshtein, Chameleon and Phaedrus mechanisms.
+
+The code solves the nonlinear dimensionless spherical boundary-value-problem (BVP) for a scalar field perturbation $Q(x)$, $x = r/R$:
 
 $$
-A\,Q_{xx} + \frac{2A}{x}Q_x + Q(B + CQ) - \frac{D}{x^2}\frac{d}{dx}[x^2 Q Q_x] - E\,Q_x^2 + \frac{4F}{x^2}\frac{d}{dx}[x\,Q_x^2] = -S\,\delta(x)
+\frac{1}{x^2}\frac{d}{dx}\left[x^2 \left(A + D Q\right) Q_x\right] + x^2 Q(B + CQ) - \frac{1}{x^2}\frac{d^2}{dx^2}\left[F x^2 Q_x^2\right] + E x^2 Q_x^2 + S x^2 \tilde{\rho}(x) = 0,
 $$
 
-with a smoothed top-hat density profile $\delta(x)$ and Robin boundary conditions matched to a Yukawa exterior.
+with a smoothed top-hat density profile $\delta(x)$, where x is the dimensionless radial coordinate $x = r/R$, with $R$ being the radius of the source.
 
-| Mechanism | Driven by | Key coefficients |
+| Coefficient | Physics |
 |---|---|---|
-| **Chameleon** | Nonlinear potential | `B`, `C` |
-| **Vainshtein** | Derivative self-interaction | `F` |
-| **Phaedrus** | Kinetic nonlinearity | `D`, `E` |
+| `A` | Linear kinetic term |
+| `B`, `C` | Chameleon screening |
+| `F` | Vainshtein screening |
+| `D`, `E` | Phaedrus screening |
+| `S` | Massive source |
 
 ---
 
