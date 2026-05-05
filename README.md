@@ -3,8 +3,8 @@
 <table style="border: none; border-collapse: collapse;" cellpadding="10">
 <tr>
 <td style="border: none;" width="160">
-  <img src="assets/escut-light.png#gh-light-mode-only" alt="escut logo" width="150"/>
-  <img src="assets/escut-dark.png#gh-dark-mode-only" alt="escut logo" width="150"/>
+  <img src="assets/escut-dark.png#gh-light-mode-only" alt="escut logo" width="150"/>
+  <img src="assets/escut-light.png#gh-dark-mode-only" alt="escut logo" width="150"/>
 </td>
 <td style="border: none;">
 
