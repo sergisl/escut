@@ -1,20 +1,13 @@
 # escut
 
-<table style="border: none; border-collapse: collapse;" cellpadding="10">
-<tr>
-<td style="border: none;" width="160">
-  <img src="assets/escut-dark.png#gh-light-mode-only" alt="escut logo" width="150"/>
-  <img src="assets/escut-light.png#gh-dark-mode-only" alt="escut logo" width="150"/>
-</td>
-<td style="border: none;">
+<p align="center">
+  <img src="assets/escut-dark.png#gh-light-mode-only" alt="escut logo" width="170"/>
+  <img src="assets/escut-light.png#gh-dark-mode-only" alt="escut logo" width="170"/>
+</p>
 
 **E**quation for **SC**reening with **U**nified **T**reatment &nbsp;·&nbsp; *(Escut means shield in Catalan)*
 
 A Python library for numerically solving the master equation for screening in luminal Horndeski gravity, including the Vainshtein, Chameleon and Phaedrus mechanisms.
-
-</td>
-</tr>
-</table>
 
 The code solves the nonlinear dimensionless spherical boundary-value-problem (BVP) for a scalar field perturbation $Q(x)$, $x = r/R$:
 
