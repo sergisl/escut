@@ -8,10 +8,6 @@
   </picture>
 </p>
 
-# escut
-
-![escut logo](assets/escut-light.png#gh-light-mode-only)![escut logo](assets/escut-dark.png#gh-dark-mode-only)
-
 **E**quation for **SC**reening with **U**nified **T**reatment &nbsp;·&nbsp; *(Escut means shield in Catalan)*
 
 A Python library for numerically solving the master equation for screening in luminal Horndeski gravity, including the Vainshtein, Chameleon and Phaedrus mechanisms.
