@@ -2,11 +2,15 @@
 
 <p align="left">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/escut-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="assets/escut-light.png">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/escut-dark.png?v=1">
+    <source media="(prefers-color-scheme: light)" srcset="assets/escut-light.png?v=1">
     <img alt="escut logo" src="assets/escut-light.png" width="170">
   </picture>
 </p>
+
+# escut
+
+![escut logo](assets/escut-light.png#gh-light-mode-only)![escut logo](assets/escut-dark.png#gh-dark-mode-only)
 
 **E**quation for **SC**reening with **U**nified **T**reatment &nbsp;·&nbsp; *(Escut means shield in Catalan)*
 
