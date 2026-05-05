@@ -1,8 +1,11 @@
 # escut
 
 <p align="left">
-  <img src="assets/escut-light.png#gh-light-mode-only" alt="escut logo" width="170"/>
-  <img src="assets/escut-dark.png#gh-dark-mode-only" alt="escut logo" width="170"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/escut-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/escut-light.png">
+    <img alt="escut logo" src="assets/escut-light.png" width="170">
+  </picture>
 </p>
 
 **E**quation for **SC**reening with **U**nified **T**reatment &nbsp;·&nbsp; *(Escut means shield in Catalan)*
