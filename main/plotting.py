@@ -1,14 +1,16 @@
 """Figures for the scalar BVP: plot_double_panel (flux + slope) and plot_profiles_and_effective_mass_combined (Q + m_eff²)."""
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib import cm
 from matplotlib.lines import Line2D
 from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable
+from matplotlib.colors import Normalize
 from typing import Optional, Union
 from scipy.signal import savgol_filter
-from physics_utils import _cross_at_one, mu_for_tanh_step, compute_n_slope
+from physics_utils import _cross_at_one, mu_for_tanh_step, compute_n_slope, V_eff, Q_small_r
 
 # --- Standardized plotting sizes (use these across the module) ---
 DEFAULT_LABEL_FS = 18
@@ -42,7 +44,7 @@ set_default_plot_style()
 # =============================================
 def _cmap_setup(sols_full, cmap_name, vmin, vmax):
     """Extract delta_c from solutions and build a (cmap, vmin, vmax, color_fn) tuple."""
-    cmap = cm.get_cmap(cmap_name)
+    cmap = matplotlib.colormaps[cmap_name]
     n = len(sols_full)
     delta_cs = np.full(n, np.nan)
     for i, sol in enumerate(sols_full):
@@ -476,4 +478,83 @@ def plot_profiles_and_effective_mass_combined(
     if save:
         fig.savefig(save, dpi=180, bbox_inches="tight", transparent=True)
     return fig, (ax_top, ax_bot)
+
+
+# =============================================
+# Paper figure 3: Effective potential landscape
+# =============================================
+def plot_effective_potential(
+    delta_cs,
+    A: float, B: float, C: float, S: float,
+    *,
+    cmap_name: str = "viridis",
+    figsize=(8, 5),
+    u_left_frac: float = 0.3,
+    u_right_frac: float = 30.0,
+    n_grid: int = 3000,
+    lw: float = 2.0,
+    save=None,
+    label_fontsize: int = DEFAULT_LABEL_FS,
+    tick_fontsize: int = DEFAULT_TICK_FS,
+    cbar_fontsize: int = DEFAULT_CBAR_FS,
+):
+    """V_eff(1/Q) curves coloured by log10(δ_c), symlog y-scale.
+
+    Plots V_eff(Q;δ_c) = −(S·δ_c·Q + B·Q²/2 + C·Q³/3)/A vs u=1/Q for each
+    δ_c in *delta_cs*, with dots marking each potential minimum.
+
+    Parameters
+    ----------
+    delta_cs : array_like  Density contrasts.
+    A, B, C, S : float    EOM coefficients.
+    u_left_frac, u_right_frac : float
+        Grid edges as fractions of min/max(u_min) (defaults 0.3, 30).
+    n_grid : int  Points on the u grid.
+    save : str, optional  Save path.
+    """
+    delta_cs = np.asarray(delta_cs, dtype=float)
+    log_dcs  = np.log10(delta_cs)
+    norm_cb  = Normalize(vmin=float(log_dcs.min()), vmax=float(log_dcs.max()))
+    cmap     = plt.get_cmap(cmap_name)
+
+    # Vectorised Q_min and V(Q_min) for each δ_c
+    Q_mins = np.array([Q_small_r(B=B, C=C, S=S, delta_c=float(dc)) for dc in delta_cs])
+    u_mins = 1.0 / Q_mins
+    V_mins = np.array([V_eff(np.array([Qm]), A, B, C, S, float(dc))[0]
+                       for Qm, dc in zip(Q_mins, delta_cs)])
+
+    u     = np.geomspace(u_mins.min() * u_left_frac, u_mins.max() * u_right_frac, n_grid)
+    Q_grid = 1.0 / u
+
+    fig, ax = plt.subplots(figsize=figsize)
+    fig.patch.set_alpha(0)
+
+    for dc, ldc, u_m, V_m in zip(delta_cs, log_dcs, u_mins, V_mins):
+        col = cmap(norm_cb(ldc))
+        ax.plot(u, V_eff(Q_grid, A, B, C, S, float(dc)), color=col, lw=lw)
+        ax.scatter([u_m], [V_m], color=col, s=55, zorder=5)
+
+    ax.axhline(0.0, color="gray", ls="--", lw=0.8, alpha=0.5)
+
+    linthresh = abs(V_mins).max() * 2.0
+    ax.set_yscale("symlog", linthresh=linthresh, linscale=0.5)
+    ax.set_ylim(V_mins.min() * 1.5, linthresh * 8.0)
+    ax.set_yticks([t for t in ax.get_yticks() if abs(t) != 1.0])
+
+    ax.set_xscale("log")
+    ax.set_xlim(float(u[0]), float(u[-1]))
+    ax.set_xlabel(r"$1/Q$", fontsize=label_fontsize)
+    ax.set_ylabel(r"$V_{\mathrm{eff}}$", fontsize=label_fontsize)
+    ax.tick_params(labelsize=tick_fontsize)
+
+    sm = ScalarMappable(cmap=cmap, norm=norm_cb)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label(r"$\log_{10}(\delta_c)$", fontsize=cbar_fontsize)
+    cbar.ax.tick_params(labelsize=tick_fontsize)
+
+    fig.tight_layout()
+    if save:
+        fig.savefig(save, dpi=300, bbox_inches="tight", transparent=True)
+    return fig, ax
 
