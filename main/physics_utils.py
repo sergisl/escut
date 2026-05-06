@@ -267,3 +267,35 @@ def compute_n_slope(sol, x: np.ndarray, win: int = 61, poly: int = 3, eps: float
     Ls = savgol_filter(L, win, poly) if win >= 5 else L
     n = np.gradient(Ls, np.log(x))
     return n
+
+
+def V_eff(Q: np.ndarray, A: float, B: float, C: float,
+          S: float, delta_c: float) -> np.ndarray:
+    """Effective potential V_eff(Q; δ_c) from the homogeneous scalar EOM.
+
+    The EOM ∇²Q = (S·δ_c + B·Q + C·Q²) / A  ≡  −dV_eff/dQ  implies
+
+        V_eff(Q; δ_c) = −(S·δ_c·Q + B·Q²/2 + C·Q³/3) / A
+
+    Parameters
+    ----------
+    Q : array_like
+        Field values at which to evaluate V_eff.
+    A : float
+        Kinetic coefficient A in the EOM.
+    B : float
+        Linear mass coefficient B.
+    C : float
+        Cubic self-interaction coefficient C.
+    S : float
+        Source coupling S.
+    delta_c : float
+        Density contrast δ_c (sets the depth of the potential well).
+
+    Returns
+    -------
+    V : ndarray
+        Effective potential values, same shape as Q.
+    """
+    Q = np.asarray(Q, dtype=float)
+    return -(S * delta_c * Q + (B / 2.0) * Q**2 + (C / 3.0) * Q**3) / A

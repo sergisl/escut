@@ -10,6 +10,7 @@ from core_solver import (
 from physics_utils import (
     smoothed_density,
     Q_small_r,
+    V_eff,
     make_initial_guess_from_analytic,
     mu_for_tanh_step,
     _cross_at_one,
@@ -34,11 +35,13 @@ try:
     from .plotting import (
         plot_double_panel,
         plot_profiles_and_effective_mass_combined,
+        plot_effective_potential,
     )
 except ImportError:
     from plotting import (
         plot_double_panel,
         plot_profiles_and_effective_mass_combined,
+        plot_effective_potential,
     )
 
 # For convenience, expose key submodule names
