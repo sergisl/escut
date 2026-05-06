@@ -69,12 +69,15 @@ If you use this code, please cite:
 
 ---
 
-## AI assistance disclosure
+## Contact
 
-Parts of this codebase were developed with the assistance of GitHub Copilot. All physics formulations and scientific results were designed and verified by the authors.
+For questions or comments, please contact sergi.sirera@port.ac.uk.
+
+> Parts of this codebase were developed with the assistance of GitHub Copilot. All physics formulations and scientific results were designed and verified by the authors.
 
 ---
 
-## Contact
-
-For questions or comments, please contact me at sergi.sirera@port.ac.uk.
+![GitHub language count](https://img.shields.io/github/languages/count/sergisl/escut)
+![GitHub top language](https://img.shields.io/github/languages/top/sergisl/escut?color=yellow)
+![GitHub forks](https://img.shields.io/github/forks/sergisl/escut?style=social)
+![GitHub Repo stars](https://img.shields.io/github/stars/sergisl/escut?style=social)
