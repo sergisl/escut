@@ -54,18 +54,7 @@ See the Jupyter notebooks for worked examples of each mechanism: [Chameleon](not
 
 ## Citation
 
-If you use this code, please cite:
-
-```bibtex
-@article{Sirera2026master,
-  author  = {Sirera, Sergi and Baker, Tessa and Hallam, James and Naidoo, Krishna},
-  title   = {{A Master Equation for Screening in Luminal Horndeski Gravity}},
-  journal = {arXiv},
-  year    = {2026},
-  note    = {arXiv:XXXX.XXXXX},
-  url     = {https://arxiv.org/abs/XXXX.XXXXX},
-}
-```
+If you use this code, please cite the associated paper: [2605.04154](https://arxiv.org/abs/2605.04154).
 
 ---
 
