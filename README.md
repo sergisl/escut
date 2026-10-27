@@ -121,11 +121,17 @@ Dependencies: `numpy`, `scipy`, `matplotlib` (all installed automatically).
 
 ## Examples
 
-See the Jupyter notebooks for worked examples of each mechanism: [Chameleon](notebooks/chameleon-screening.ipynb), [Vainshtein](notebooks/vainshtein-screening.ipynb), and [Phaedrus](notebooks/phaedrus-screening.ipynb).
+Worked examples live in [`examples/`](examples/), one folder per topic.
 
-For a worked study using the charge formulation — two mechanisms acting at once,
-with a notebook reproducing each figure of the accompanying paper — see
-[`examples/Vainshtein_Chameleon_symbiosis/`](examples/Vainshtein_Chameleon_symbiosis/).
+[`single-mechanisms/`](examples/single-mechanisms/) takes each mechanism on its own —
+[Chameleon](examples/single-mechanisms/chameleon-screening.ipynb),
+[Vainshtein](examples/single-mechanisms/vainshtein-screening.ipynb) and
+[Phaedrus](examples/single-mechanisms/phaedrus-screening.ipynb) — plus
+[convergence tests](examples/single-mechanisms/convergence-tests.ipynb) of the solver.
+
+[`Vainshtein_Chameleon_symbiosis/`](examples/Vainshtein_Chameleon_symbiosis/) is a
+worked study using the charge formulation — two mechanisms acting at once, with a
+notebook reproducing each figure of the accompanying paper.
 
 ---
 

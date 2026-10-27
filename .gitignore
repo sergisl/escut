@@ -19,8 +19,6 @@ build/
 .ipynb_checkpoints/
 
 # ── Generated output files (large binaries / reproducible from notebooks) ─────
-notebooks/output/
-notebooks/archive-output/
 *.npz
 *.pdf
 *.png
@@ -48,13 +46,6 @@ htmlcov/
 # The paper, correspondence, derivations and the exploratory pipeline that
 # produced them all live in this working tree but must never be published.
 assets/drafts/
-notebooks/_*
-notebooks/archive/
-notebooks/final/
-notebooks/mixed-screening.ipynb
-notebooks/paper-figures.ipynb
-notebooks/screening-plots.ipynb
-notebooks/*.npz
 main/archive/
 main/symbiotic.py
 scripts/
@@ -76,4 +67,9 @@ archive/
 
 # Paper-internal: demonstrates main/symbiotic.py, which is not part of the
 # released package. examples/ covers the symbiosis via the public API instead.
-notebooks/symbiotic-screening.ipynb
+
+# Paper-internal working directory: figure generators, sweeps and caches for the
+# symbiosis paper. The public notebooks now live in examples/, so nothing here is
+# released. A single rule rather than per-file ones, which broke whenever a file
+# was added or the directory was reorganised.
+notebooks/
