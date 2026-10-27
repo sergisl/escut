@@ -1,4 +1,5 @@
 """Figures for the scalar BVP: plot_double_panel (flux + slope) and plot_profiles_and_effective_mass_combined (Q + m_eff²)."""
+import warnings
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,7 +11,10 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 from typing import Optional, Union
 from scipy.signal import savgol_filter
-from physics_utils import _cross_at_one, mu_for_tanh_step, compute_n_slope, V_eff, Q_small_r
+try:  # package import; falls back to flat when main/ is on sys.path
+    from .physics_utils import _cross_at_one, mu_for_tanh_step, compute_n_slope, V_eff, Q_small_r, effective_gravity
+except ImportError:
+    from physics_utils import _cross_at_one, mu_for_tanh_step, compute_n_slope, V_eff, Q_small_r, effective_gravity
 
 # --- Standardized plotting sizes (use these across the module) ---
 DEFAULT_LABEL_FS = 18
@@ -91,6 +95,10 @@ def plot_double_panel(
     vline_ls: str = "striped",
     show_horizontal_guides: bool = True,
     ylim_deriv=None,
+    geff_panel: bool = False,
+    alpha_B: float = 0.0,
+    alpha_M: float = 0.0,
+    geff_height: float = 1.0,
     save=None,
     label_fontsize: int = DEFAULT_LABEL_FS,
     tick_fontsize: int = DEFAULT_TICK_FS,
@@ -111,6 +119,18 @@ def plot_double_panel(
     S, delta_inf, eps_edge  Physical parameters for Vainshtein radius estimate.
     vradius : 'full'|'mu'|'none'  Which Vainshtein radius to mark.
     ylim_deriv              Optional (ymin, ymax) for the top flux panel.
+    geff_panel : bool       If True, append a third panel with the Jordan-frame
+                            effective Newton constant G_eff/G_N (requires
+                            linrefs).  Uses the metric couplings alpha_B, alpha_M
+                            and Gamma = sol.meta['A']; see physics_utils.effective_gravity.
+    alpha_B, alpha_M : float  Braiding / running EFT functions for the G_eff panel.
+    geff_height : float     Height ratio of the G_eff panel relative to the flux
+                            panel's 2.5 (default 1, matching the n panel).
+
+    Returns
+    -------
+    fig, axes, xV_map  where axes is (ax_top, ax_bot) or, if geff_panel,
+    (ax_top, ax_bot, ax_geff).
     """
     x = np.asarray(x)
     nsol = len(sols_full)
@@ -125,9 +145,20 @@ def plot_double_panel(
     # --- Figure ---
     fig = plt.figure(figsize=figsize)
     fig.patch.set_alpha(0)
-    gs = gridspec.GridSpec(2, 1, height_ratios=[2.5, 1], hspace=0.1)
-    ax_top = fig.add_subplot(gs[0])
-    ax_bot = fig.add_subplot(gs[1], sharex=ax_top)
+    if geff_panel:
+        gs = gridspec.GridSpec(3, 1, height_ratios=[2.5, 1, geff_height], hspace=0.1)
+        ax_top = fig.add_subplot(gs[0])
+        ax_bot = fig.add_subplot(gs[1], sharex=ax_top)
+        ax_geff = fig.add_subplot(gs[2], sharex=ax_top)
+    else:
+        gs = gridspec.GridSpec(2, 1, height_ratios=[2.5, 1], hspace=0.1)
+        ax_top = fig.add_subplot(gs[0])
+        ax_bot = fig.add_subplot(gs[1], sharex=ax_top)
+        ax_geff = None
+
+    all_axes = (ax_top, ax_bot) if ax_geff is None else (ax_top, ax_bot, ax_geff)
+    if geff_panel and linrefs is None:
+        raise ValueError("geff_panel=True requires linrefs (the linear reference solutions).")
 
     # --- Smoothing window normalization ---
     def _norm_win(win, nx):
@@ -185,6 +216,16 @@ def plot_double_panel(
             Llin_s = savgol_filter(Llin, win_n, smooth_poly_vain) if isinstance(win_n, int) and win_n >= 5 else Llin
             ax_bot.plot(x, np.gradient(Llin_s, np.log(x)), color=col, lw=max(0.8, lw_lin), linestyle=":", alpha=0.9)
 
+        # ---- THIRD PANEL: effective Newton constant G_eff/G_N ----
+        if ax_geff is not None:
+            try:
+                Qx_lin_g = linrefs[i].sol(x)[1]
+            except Exception:
+                Qx_lin_g = np.asarray(linrefs[i](x))[1]
+            Gam = float(A) if A not in (None, 0) else 1.0
+            res = effective_gravity(Qx, Qx_lin_g, alpha_B, alpha_M, Gamma=Gam)
+            ax_geff.plot(x, res["Geff_over_GN"], color=col, lw=lw_num, linestyle="-")
+
         # ---- Vainshtein radius ----
         xV_full = None
         if (A is not None) and (F is not None):
@@ -197,17 +238,26 @@ def plot_double_panel(
                 xV_mu = float(((8.0 * (F or 1.0) * mu_tot) / ((A or 1.0)**2))**(1.0/3.0))
             except Exception:
                 pass
-        xV_map[i] = {"xV_full": xV_full, "xV_mu": xV_mu, "delta_c": dc}
+        # Exact analytic radius x_V = (8 F I_obj / A²)^(1/3); the transition the
+        # algebraic flux actually flattens at (no ½-factor, no R(x)=1 ambiguity).
+        xV_exact = None
+        if (A is not None) and (F is not None) and (dc is not None) and float(F) != 0.0:
+            try:
+                from physics_utils import vainshtein_radius
+                xV_exact = vainshtein_radius(float(A), float(F), float(dc), delta_inf, eps_edge, S)
+            except Exception:
+                pass
+        xV_map[i] = {"xV_full": xV_full, "xV_mu": xV_mu, "xV_exact": xV_exact, "delta_c": dc}
 
-        xv_draw = xV_full if vradius == "full" else (xV_mu if vradius == "mu" else None)
+        xv_draw = {"full": xV_full, "mu": xV_mu, "exact": xV_exact}.get(vradius, None)
         if xv_draw is not None:
             ls_style = (0, (4, 2)) if vline_ls == "striped" else vline_ls
-            for ax_ in (ax_top, ax_bot):
+            for ax_ in all_axes:
                 ax_.axvline(xv_draw, color=col, ls=ls_style, lw=float(vline_lw),
                             alpha=float(vline_alpha), label="_noref")
 
     # ---- Decorations ----
-    for ax_ in (ax_top, ax_bot):
+    for ax_ in all_axes:
         ax_.axvline(1.0, color="k", ls="--", lw=1.0, alpha=0.85)
         ax_.tick_params(labelsize=tick_fontsize)
         ax_.grid(False)
@@ -222,25 +272,42 @@ def plot_double_panel(
         for val, ls in [(3.0, ":"), (1.5, "--"), (0.0, "-.")]:
             ax_bot.axhline(val, color="gray", ls=ls, lw=1, alpha=0.6)
     ax_bot.set_xscale("log")
-    ax_bot.set_xlabel(r"$x\equiv r/R$", fontsize=label_fontsize)
     ax_bot.set_ylabel(r"Slope $n$", fontsize=label_fontsize)
 
-    ax_top.label_outer()
-    ax_bot.label_outer()
+    ax_xlabel = ax_geff if ax_geff is not None else ax_bot
+    ax_xlabel.set_xlabel(r"$x\equiv r/R$", fontsize=label_fontsize)
 
-    fig.tight_layout()
+    if ax_geff is not None:
+        A_ref = (getattr(sols_full[0], "meta", {}) or {}).get("A", 1.0) or 1.0
+        Xi = (alpha_B + 2.0 * alpha_M) ** 2 / (2.0 * float(A_ref))
+        plateau = 1.0 + Xi
+        ax_geff.axhline(plateau, color="0.35", ls="--", lw=1.2)   # linear / unscreened
+        ax_geff.axhline(1.0, color="0.35", ls=":", lw=1.2)        # GR
+        ax_geff.set_xscale("log")
+        ax_geff.set_ylim(0.99, plateau + 0.02 * max(plateau - 1.0, 0.1) / 0.1)
+        ax_geff.set_ylabel(r"$G_{\rm eff}/G_N$", fontsize=label_fontsize)
+
+    for ax_ in all_axes:
+        ax_.label_outer()
+
+    # The colourbar axes is added outside the gridspec, which tight_layout cannot
+    # account for; it warns but still lays the panels out correctly. Silenced here
+    # so the warning (and the absolute path it prints) does not land in notebooks.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', message='.*not compatible with tight_layout.*')
+        fig.tight_layout()
     finite = np.isfinite(delta_cs) & (delta_cs > 0)
     if finite.any() and vmin is not None and vmax is not None and vmax > vmin:
         sm = ScalarMappable(cmap=cmap)
         sm.set_clim(float(vmin), float(vmax))
         fig.subplots_adjust(right=0.86)
-        cbar = fig.colorbar(sm, ax=[ax_top, ax_bot], pad=0.02, fraction=0.05, aspect=30)
+        cbar = fig.colorbar(sm, ax=list(all_axes), pad=0.02, fraction=0.05, aspect=30)
         cbar.set_label(r"$\log_{10}(\delta_c)$", fontsize=cbar_fontsize)
         cbar.ax.tick_params(labelsize=tick_fontsize)
 
     if save:
         fig.savefig(save, dpi=180, bbox_inches="tight", transparent=True)
-    return fig, (ax_top, ax_bot), xV_map
+    return fig, all_axes, xV_map
 
 
 # =============================================
@@ -274,7 +341,7 @@ def plot_profiles_and_effective_mass_combined(
     tick_fontsize: int = DEFAULT_TICK_FS,
     cbar_fontsize: int = DEFAULT_CBAR_FS,
 ):
-    """Paper figure: |Q(x)| (left axis) and m_eff²/H² = sign·(B+C·Q)/γ (right axis).
+    """Paper figure: Q(x) (left axis) and m_eff²/H² = sign·(B+C·Q)/γ (right axis).
 
     twin_axes=False  Two stacked panels (Q top, m_eff² bottom), shared x-axis.
     twin_axes=True   Single panel with secondary y-axis; B and C must be uniform.
@@ -341,23 +408,23 @@ def plot_profiles_and_effective_mass_combined(
         for i, sol in enumerate(sols_full):
             col = color_for_dc(delta_cs[i])
             try:
-                Q = np.abs(sol.sol(x)[0])
+                Q = sol.sol(x)[0]
             except Exception:
-                Q = np.abs(np.asarray(sol(x))[0])
+                Q = np.asarray(sol(x))[0]
             ax.plot(x, Q, color=col, lw=lw_num, label=labels[i])
             if anrefs is not None:
-                ax.plot(x, np.abs(np.asarray(anrefs[i])), color=col, lw=lw_an, linestyle=an_ls, alpha=0.9)
+                ax.plot(x, np.asarray(anrefs[i]), color=col, lw=lw_an, linestyle=an_ls, alpha=0.9)
             if linrefs is not None:
                 try:
-                    Q_lin = np.abs(linrefs[i].sol(x)[0])
+                    Q_lin = linrefs[i].sol(x)[0]
                 except Exception:
-                    Q_lin = np.abs(np.asarray(linrefs[i](x))[0])
+                    Q_lin = np.asarray(linrefs[i](x))[0]
                 ax.plot(x, Q_lin, color=col, lw=lw_lin, linestyle=lin_ls, alpha=0.95)
 
         ax.axvline(1.0, color="k", ls="--", lw=1.0, alpha=0.85)
         ax.set_xscale("log")
         ax.set_xlabel(r"$x\equiv r/R$", fontsize=label_fontsize)
-        ax.set_ylabel(r"$|Q|$", fontsize=label_fontsize)
+        ax.set_ylabel(r"$Q$", fontsize=label_fontsize)
         ax.tick_params(labelsize=tick_fontsize)
         ax.grid(False)
         x_arr = np.atleast_1d(x)
@@ -465,7 +532,12 @@ def plot_profiles_and_effective_mass_combined(
     ]
     ax_top.legend(handles=legend_lines, fontsize=DEFAULT_LEGEND_FS, loc="best")
 
-    fig.tight_layout()
+    # The colourbar axes is added outside the gridspec, which tight_layout cannot
+    # account for; it warns but still lays the panels out correctly. Silenced here
+    # so the warning (and the absolute path it prints) does not land in notebooks.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', message='.*not compatible with tight_layout.*')
+        fig.tight_layout()
     finite = np.isfinite(delta_cs) & (delta_cs > 0)
     if finite.any() and vmin is not None and vmax is not None and vmax > vmin:
         sm = ScalarMappable(cmap=cmap)

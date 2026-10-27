@@ -1,6 +1,6 @@
 [project]
 name = "escut"
-version = "0.1.0"
+version = "0.2.0"
 description = "Scalar BVP solver utilities for screening mechanisms (chameleon, Vainshtein, Phaedrus)."
 authors = [{ name = "sergisl" }]
 readme = "README.md"
@@ -20,12 +20,11 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# Treat the 'main' directory as the package root for 'escut'
+# The 'main' directory is the package root for 'escut'. Both lines are needed:
+# without an explicit `packages`, setuptools auto-discovers every top-level
+# directory (archive/, assets/, notebooks/, ...) and ships them as packages.
 package-dir = {"escut" = "main"}
-
-[tool.setuptools.packages.find]
-# We use an explicit package mapping; avoid auto-discovery conflicts
-# (setuptools will consider 'escut' from package-dir above)
+packages = ["escut"]
 
 
 [project.optional-dependencies]

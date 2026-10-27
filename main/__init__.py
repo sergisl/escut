@@ -1,10 +1,7 @@
-"""
-Escut package
+"""escut: scalar BVP solver utilities for screening mechanisms.
 
-Lightweight scalar BVP solver utilities for screening mechanisms.
-
-This package exposes the same public API surfaced via the `escut.py`
-module, allowing `import escut` in addition to `from escut import ...`.
+Mirrors the public surface of `escut.py`, so both `import escut` (installed
+package) and a flat `sys.path` import of `main/` expose the same names.
 """
 
 from .core_solver import (
@@ -12,18 +9,33 @@ from .core_solver import (
     solve_scalar_bvp,
 )
 
+from .charge_solver import (
+    solve_scalar_bvp_charge,
+    solve_scalar_bvp_charge_log,
+    charge_gradient,
+    charge_discriminant,
+    charge_from_flux,
+    charge_vainshtein_radius,
+    background_mass,
+)
+
 from .physics_utils import (
     smoothed_density,
     Q_small_r,
-    mu_eff_Q_in_m_eff,
+    V_eff,
     make_initial_guess_from_analytic,
     mu_for_tanh_step,
-    mu_cumulative_for_tanh_step,
+    compute_n_slope,
+    analytic_Q_thin_shell,
+    enclosed_source,
+    vainshtein_flux,
+    vainshtein_radius,
+    make_vainshtein_solution,
+    effective_gravity,
+    screening_factor,
 )
 
-from .mesh_utils import (
-    build_clustered_mesh,
-)
+from .mesh_utils import build_clustered_mesh
 
 from .boundary_conditions import (
     outer_bc_robin_coeffs,
@@ -31,24 +43,27 @@ from .boundary_conditions import (
     bc_robin_jac,
 )
 
+from . import styling
+
+from .plotting import (
+    plot_double_panel,
+    plot_profiles_and_effective_mass_combined,
+    plot_effective_potential,
+)
+
 __all__ = [
-    # Core solvers
-    'scalar_equation_and_jac',
-    'solve_scalar_bvp',
-
-    # Physics utilities
-    'smoothed_density',
-    'Q_small_r',
-    'mu_eff_Q_in_m_eff',
-    'make_initial_guess_from_analytic',
-    'mu_for_tanh_step',
-    'mu_cumulative_for_tanh_step',
-
-    # Mesh utilities
+    'scalar_equation_and_jac', 'solve_scalar_bvp',
+    'solve_scalar_bvp_charge', 'solve_scalar_bvp_charge_log',
+    'charge_gradient', 'charge_discriminant', 'charge_from_flux',
+    'charge_vainshtein_radius', 'background_mass',
+    'smoothed_density', 'Q_small_r', 'V_eff',
+    'make_initial_guess_from_analytic', 'mu_for_tanh_step', 'compute_n_slope',
+    'analytic_Q_thin_shell', 'enclosed_source', 'vainshtein_flux',
+    'vainshtein_radius', 'make_vainshtein_solution', 'effective_gravity',
+    'screening_factor',
     'build_clustered_mesh',
-
-    # Boundary conditions
-    'outer_bc_robin_coeffs',
-    'bc_robin',
-    'bc_robin_jac',
+    'outer_bc_robin_coeffs', 'bc_robin', 'bc_robin_jac',
+    'plot_double_panel', 'plot_profiles_and_effective_mass_combined',
+    'plot_effective_potential',
+    'styling',
 ]

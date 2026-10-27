@@ -6,6 +6,18 @@ from core_solver import (
     solve_scalar_bvp,
 )
 
+# First-order (Q, I) formulation
+# (method="charge" in solve_scalar_bvp above dispatches here)
+from charge_solver import (
+    solve_scalar_bvp_charge,
+    solve_scalar_bvp_charge_log,
+    charge_gradient,
+    charge_discriminant,
+    charge_from_flux,
+    charge_vainshtein_radius,
+    background_mass,
+)
+
 # Physics utilities
 from physics_utils import (
     smoothed_density,
@@ -16,6 +28,12 @@ from physics_utils import (
     _cross_at_one,
     compute_n_slope,
     analytic_Q_thin_shell,
+    enclosed_source,
+    vainshtein_flux,
+    vainshtein_radius,
+    make_vainshtein_solution,
+    effective_gravity,
+    screening_factor,
 )
 
 # Mesh utilities
@@ -46,15 +64,26 @@ except ImportError:
 
 # For convenience, expose key submodule names
 import core_solver as core_solver
+import charge_solver as charge_solver
 import physics_utils as physics_utils
 import mesh_utils as mesh_utils
 import boundary_conditions as boundary_conditions
 import plotting as plotting
+import styling as styling
 
 __all__ = [
     # Core solvers
     'scalar_equation_and_jac',
     'solve_scalar_bvp',
+
+    # Charge-form (Q, 𝓘) solver
+    'solve_scalar_bvp_charge',
+    'solve_scalar_bvp_charge_log',
+    'charge_gradient',
+    'charge_discriminant',
+    'charge_from_flux',
+    'charge_vainshtein_radius',
+    'background_mass',
 
     # Physics utilities
     'smoothed_density',
@@ -62,6 +91,12 @@ __all__ = [
     'make_initial_guess_from_analytic',
     'mu_for_tanh_step',
     'analytic_Q_thin_shell',
+    'enclosed_source',
+    'vainshtein_flux',
+    'vainshtein_radius',
+    'make_vainshtein_solution',
+    'effective_gravity',
+    'screening_factor',
 
     # Mesh utilities
     'build_clustered_mesh',
@@ -73,10 +108,12 @@ __all__ = [
 
     # Submodules
     'core_solver',
+    'charge_solver',
     'physics_utils',
     'mesh_utils',
     'boundary_conditions',
     'plotting',
+    'styling',
 
     # Plotting exports
     'compute_n_slope',

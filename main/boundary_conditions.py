@@ -4,13 +4,14 @@ import numpy as np
 from typing import Callable, Tuple
 
 
-def outer_bc_robin_coeffs(A: float, B: float, C: float, xmax: float, Q_inf: float) -> float:
+def outer_bc_robin_coeffs(A: float, B: float, C: float, xmax: float, Q_inf: float,
+                          G: float = 0) -> float:
     """Robin BC coefficient k for Qx + k(Q - Q_inf) = 0 at x = xmax.
 
-    k = m_eff + 1/xmax, where m_eff = sqrt(max(0, -(B + 2C·Q_inf)/A)).
+    k = m_eff + 1/xmax, where m_eff = sqrt(max(0, -(B + 2C·Q_inf + 3G·Q_inf²)/A)).
     """
-    # Estimate effective mass at outer boundary
-    mu_out = -(B + 2.0*C*Q_inf)/A if A != 0 else 0.0
+    # Estimate effective mass at outer boundary (linearised around Q_inf)
+    mu_out = -(B + 2.0*C*Q_inf + 3.0*G*Q_inf**2)/A if A != 0 else 0.0
     m_out  = np.sqrt(mu_out) if mu_out > 0 else 0.0
     # Robin coefficient combines Yukawa decay + 1/r falloff
     return m_out + 1.0/xmax

@@ -43,3 +43,37 @@ htmlcov/
 
 # ── Environment files ─────────────────────────────────────────────────────────
 .env
+
+# ── Research material: not part of the escut release ──────────────────────────
+# The paper, correspondence, derivations and the exploratory pipeline that
+# produced them all live in this working tree but must never be published.
+assets/drafts/
+notebooks/_*
+notebooks/archive/
+notebooks/final/
+notebooks/mixed-screening.ipynb
+notebooks/paper-figures.ipynb
+notebooks/screening-plots.ipynb
+notebooks/*.npz
+main/archive/
+main/symbiotic.py
+scripts/
+notes/
+QUICK_REFERENCE.py
+START_HERE.txt
+_cleanup_plotting.py
+_verify_final.py
+fix_notebooks.py
+verify_solver.py
+
+# Ship the cached sweeps for the worked example: without them the phase
+# diagrams take nearly two hours to regenerate from scratch.
+!examples/**/*.npz
+
+# Local-only material: correspondence, seminars, superseded drafts, stale sweeps.
+# Never part of the public release.
+archive/
+
+# Paper-internal: demonstrates main/symbiotic.py, which is not part of the
+# released package. examples/ covers the symbiosis via the public API instead.
+notebooks/symbiotic-screening.ipynb

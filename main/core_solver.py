@@ -4,22 +4,26 @@ import numpy as np
 from scipy.integrate import solve_bvp
 from typing import Callable, Tuple, Optional, Dict, Any
 
-from physics_utils import smoothed_density
-from boundary_conditions import outer_bc_robin_coeffs, bc_robin, bc_robin_jac
+try:  # package import; falls back to flat when main/ is on sys.path
+    from .physics_utils import smoothed_density
+    from .boundary_conditions import outer_bc_robin_coeffs, bc_robin, bc_robin_jac
+except ImportError:
+    from physics_utils import smoothed_density
+    from boundary_conditions import outer_bc_robin_coeffs, bc_robin, bc_robin_jac
 
 
 def scalar_equation_and_jac(x: np.ndarray, y: np.ndarray, pars: np.ndarray, 
                             delta_x: Callable, eps_den: float = 1e-12) -> Tuple[np.ndarray, np.ndarray]:
     """RHS and Jacobian for the unified screening ODE, Qxx = N/D.
 
-    N = -S x² δ - (A+DQ)(2x Qx) - x²Q(B+CQ) + 2F Qx² - E x² Qx²
+    N = -S x² δ - (A+DQ)(2x Qx) - x²Q(B+CQ+GQ²) + 2F Qx² - E x² Qx²
     D = (A+DQ) x² - 4F x Qx
 
     Parameters
     ----------
     x : ndarray          Spatial grid.
     y : ndarray (2, N)   State [Q, Qx].
-    pars : ndarray (7,)  Coefficients [A, B, C, D, E, F, S].
+    pars : ndarray (8,)  Coefficients [A, B, C, D, E, F, G, S].
     delta_x : callable   Density profile δ(x).
     eps_den : float      Denominator regularisation floor (default 1e-12).
 
@@ -29,12 +33,12 @@ def scalar_equation_and_jac(x: np.ndarray, y: np.ndarray, pars: np.ndarray,
     jac : ndarray (2, 2, N) ∂f/∂(Q, Qx).
     """
     Q, Qx = y
-    A, B, C, D, E, F, S = pars
+    A, B, C, D, E, F, G, S = pars
 
     # Numerator N (all terms except those multiplying Qxx)
     N  = (-S * delta_x(x)) * x**2 \
          - (A + D*Q) * (2*x*Qx) \
-         - x**2 * Q * (B + C*Q) \
+         - x**2 * Q * (B + C*Q + G*Q**2) \
          + 2*F * Qx**2 \
          - E * x**2 * Qx**2
 
@@ -50,7 +54,7 @@ def scalar_equation_and_jac(x: np.ndarray, y: np.ndarray, pars: np.ndarray,
     f   = np.vstack((Qx, Qxx))
 
     # ---- Analytic Jacobian: ∂f/∂(Q, Qx)
-    dN_dQ  = -(2*x*Qx)*D - x**2*(B + 2*C*Q)
+    dN_dQ  = -(2*x*Qx)*D - x**2*(B + 2*C*Q + 3*G*Q**2)
     dN_dQx = -(A + D*Q)*(2*x) + 4*F*Qx - 2*E*x**2*Qx
     dD_dQ  = D * x**2
     dD_dQx = -4 * F * x
@@ -66,8 +70,8 @@ def scalar_equation_and_jac(x: np.ndarray, y: np.ndarray, pars: np.ndarray,
     return f, jac
 
 
-def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0, 
-                     E: float = 0, F: float = 0, *,
+def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
+                     E: float = 0, F: float = 0, G: float = 0, *,
                      S: float = 1.0,
                      delta_c: float = 1.0, delta_inf: float = 0.0, eps_edge: float = 1e-3,
                      Q_inf: float = 0.0,
@@ -75,7 +79,9 @@ def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
                      homotopy: bool = True, steps: int = 10,
                      tol: float = 1e-7, max_nodes: int = 800000,
                      asymptotic_bc: bool = True,
-                     warn_exterior_mu_ratio: float = 1e-3) -> Any:
+                     warn_exterior_mu_ratio: float = 1e-3,
+                     method: str = "gradient",
+                     source_fn=None, guess_fn=None) -> Any:
     """Solve the spherical scalar BVP for Q(x), x = r/R.
 
     Uses homotopy continuation by default: ramps nonlinear coefficients (C,D,E,F)
@@ -83,8 +89,8 @@ def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
 
     Parameters
     ----------
-    A, B, C, D, E, F : float  Equation coefficients.
-    S : float                  Source amplitude (default 1.0).
+    A, B, C, D, E, F, G : float  Equation coefficients (G=0 → no cubic term).
+    S : float                     Source amplitude (default 1.0).
     delta_c, delta_inf : float Overdensities inside/outside object.
     eps_edge : float           Density transition width (default 1e-3).
     Q_inf : float              Asymptotic Q value (default 0.0).
@@ -94,11 +100,33 @@ def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
     steps : int                Number of homotopy steps (default 10).
     tol : float                BVP solver tolerance (default 1e-7).
     max_nodes : int            Maximum refinement nodes (default 800000).
+    method : {"gradient", "charge"}
+        Which state variable to integrate alongside Q. "gradient" (default)
+        solves the (Q, Qx) equation below. "charge" solves the (Q, I) form in
+        `charge_solver`, which has no denominator that can vanish but requires
+        E == D. The two agree to ~1e-10 where both converge.
+    source_fn, guess_fn : callable, optional
+        Used only by method="charge"; see `solve_scalar_bvp_charge`.
 
     Returns
     -------
     sol : BVPResult  scipy solution with added `.meta` dict of problem parameters.
     """
+    if method == "charge":
+        try:
+            from .charge_solver import solve_scalar_bvp_charge
+        except ImportError:
+            from charge_solver import solve_scalar_bvp_charge
+        return solve_scalar_bvp_charge(
+            A=A, B=B, C=C, D=D, E=E, F=F, G=G, S=S,
+            delta_c=delta_c, delta_inf=delta_inf, eps_edge=eps_edge, Q_inf=Q_inf,
+            source_fn=source_fn, guess_fn=guess_fn,
+            xmin=xmin, xmax=xmax, npoints=npoints,
+            homotopy=homotopy, steps=steps, tol=tol, max_nodes=max_nodes,
+            asymptotic_bc=asymptotic_bc)
+    elif method != "gradient":
+        raise ValueError(f"method must be 'gradient' or 'charge' (got {method!r})")
+
     delta_x = lambda xx: smoothed_density(xx, delta_c, delta_inf, eps=eps_edge)
     x = np.linspace(xmin, xmax, npoints)
     y_guess = np.vstack((Q_inf*np.ones_like(x), np.zeros_like(x)))
@@ -107,8 +135,11 @@ def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
     Q_inf_use = float(Q_inf)
     if asymptotic_bc:
         try:
-            from physics_utils import _mu_eff_Q_in_m_eff
-            mu_eff, Q_in_est, m_eff = _mu_eff_Q_in_m_eff(A, B, C, S, delta_c, R=1.0)
+            try:
+                from .physics_utils import _mu_eff_Q_in_m_eff
+            except ImportError:
+                from physics_utils import _mu_eff_Q_in_m_eff
+            mu_eff, Q_in_est, m_eff = _mu_eff_Q_in_m_eff(A, B, C, S, delta_c, R=1.0, G=G)
             # estimate Q at xmax from Yukawa-like matched exterior (see mu_eff_Q_in_m_eff)
             # guard against non-finite outputs from mu_eff_Q_in_m_eff
             if not np.isfinite(mu_eff) or not np.isfinite(m_eff):
@@ -121,7 +152,7 @@ def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
         except Exception:
             Q_inf_use = float(Q_inf)
 
-    k = outer_bc_robin_coeffs(A, B, C, xmax, Q_inf_use)
+    k = outer_bc_robin_coeffs(A, B, C, xmax, Q_inf_use, G=G)
 
     def make_problem(pars):
         def fun(xx, yy):     return scalar_equation_and_jac(xx, yy, pars, delta_x)[0]
@@ -130,8 +161,8 @@ def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
         def bc_jac(ya, yb):  return bc_robin_jac(ya, yb, Q_inf_use, k)
         return fun, fun_jac, bc, bc_jac
 
-    pars_lin  = np.array([A, B, 0, 0, 0, 0, S], dtype=float)
-    pars_full = np.array([A, B, C, D, E, F, S], dtype=float)
+    pars_lin  = np.array([A, B, 0, 0, 0, 0, 0, S], dtype=float)
+    pars_full = np.array([A, B, C, D, E, F, G, S], dtype=float)
 
     fun, fun_jac, bc, bc_jac = make_problem(pars_lin)
     sol = solve_bvp(fun, bc, x, y_guess, fun_jac=fun_jac, bc_jac=bc_jac,
@@ -154,7 +185,7 @@ def solve_scalar_bvp(A: float = 1, B: float = 0, C: float = 0, D: float = 0,
                         tol=tol, max_nodes=max_nodes)
 
     sol.meta = dict(
-        A=A, B=B, C=C, D=D, E=E, F=F, S=S,
+        A=A, B=B, C=C, D=D, E=E, F=F, G=G, S=S,
         xmin=xmin, xmax=xmax,
         delta_c=delta_c, delta_inf=delta_inf, eps_edge=eps_edge,
         Q_inf=Q_inf_use, k=k,
