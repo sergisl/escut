@@ -18,7 +18,7 @@ coordinate in units of the source radius $R$, sourced by a density profile
 $\tilde\rho(x)$ (a smoothed top hat by default). Schematically,
 
 $$
-\mathcal{K}[Q] \; = \; S\,x^2\,\tilde\rho(x) \; + \; x^2\,\mathcal{V}(Q),
+\mathcal{K}[Q] = S x^2 \tilde\rho(x) + x^2 \mathcal{V}(Q)
 $$
 
 where $\mathcal{K}$ collects the kinetic operators and $\mathcal{V}$ is the
@@ -35,7 +35,7 @@ The two set-ups below are *different equations*, not two ways of writing one.
 background, and the potential is Taylor-expanded about it and truncated,
 
 $$
-\mathcal{V}(Q) = Q\,(B + CQ + GQ^2).
+\mathcal{V}(Q) = Q (B + CQ + GQ^2)
 $$
 
 The expansion coefficients then play the role of masses and self-couplings
@@ -44,7 +44,7 @@ The expansion coefficients then play the role of masses and self-couplings
 arguments mean. The kinetic operator is
 
 $$
-\mathcal{K}[Q] = \big[(A + DQ)\,x^2\,Q_x + E\,x^2\,Q\,Q_x - 2F\,x\,Q_x^2\big]_x ,
+\mathcal{K}[Q] = \big[(A + DQ) x^2 Q_x + E x^2 Q Q_x - 2F x Q_x^2\big]_x 
 $$
 
 so the remaining arguments carry the mechanisms:
@@ -86,7 +86,7 @@ sector once:
 
 $$
 \mathcal{I} = x^2 (A + DQ)Q_x - 2F x Q_x^2, \qquad
-\mathcal{I}' = -x^2\left[S\tilde\rho(x) + \mathcal{V}(Q)\right].
+\mathcal{I}' = -x^2\left[S\tilde\rho(x) + \mathcal{V}(Q)\right]
 $$
 
 The $\mathcal{I}$ equation has no denominator, and $Q_x$ is recovered from
