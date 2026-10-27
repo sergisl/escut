@@ -12,7 +12,7 @@ They are the place to start — the symbiosis study next door assumes them.
 | [`convergence-tests.ipynb`](convergence-tests.ipynb) | Mesh and tolerance convergence of the solver |
 
 All four use the gradient formulation, `solve_scalar_bvp` over the state
-`(Q, Q_x)`. For two mechanisms acting at once — where that formulation runs into
+`(Q, Q_x)`, as introduced in [arXiv:2605.04154](https://arxiv.org/abs/2605.04154). For two mechanisms acting at once — where that formulation runs into
 a vanishing denominator and the charge formulation takes over — see
 [`../Vainshtein_Chameleon_symbiosis/`](../Vainshtein_Chameleon_symbiosis/).
 

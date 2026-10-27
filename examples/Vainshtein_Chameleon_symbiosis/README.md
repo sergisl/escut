@@ -14,16 +14,8 @@ formulation. One notebook per figure, each runnable on its own.
 
 Runtimes are the parameter sweeps, measured on a laptop. Each notebook caches
 its sweep to an `.npz` beside it, so re-running to adjust a figure is immediate.
-Every sweep marches along one axis with `seed=` continuation, which is what keeps
-them to minutes: solving each pixel cold instead costs one to two orders of
-magnitude more, because a cold solve ramps the Vainshtein term up from zero every
-time. The de-screening map is the clearest case -- 100 x 100 pixels in ~4 minutes
-warm-started, against hours cold, since each is a deeply screened core on a domain
-thousands of source radii across.
-
-Grids: 140 x 76 (void), 100 x 100 (reduction, de-screening and stability). The
-void grid is deliberately not square: that panel has a ~2:1 aspect, so a square
-grid would render as wide rectangles.
+Every sweep warm-starts each solve from the previous one (`seed=`), which is what
+keeps them to minutes rather than hours.
 
 ## Running them
 

@@ -18,18 +18,11 @@ coordinate in units of the source radius $R$, sourced by a density profile
 $\tilde\rho(x)$ (a smoothed top hat by default). Schematically,
 
 $$
-\mathcal{K}[Q] \\; = \\; S\\,x^2\\,\tilde\rho(x) \\; + \\; x^2\\,\mathcal{V}(Q),
+\mathcal{K}[Q] \; = \; S\,x^2\,\tilde\rho(x) \; + \; x^2\,\mathcal{V}(Q),
 $$
 
 where $\mathcal{K}$ collects the kinetic operators and $\mathcal{V}$ is the
 contribution of the scalar's potential.
-
-| Coefficient | Physics |
-|---|---|
-| `A` | Linear kinetic term |
-| `D`, `E` | Phaedrus screening |
-| `F` | Vainshtein screening |
-| `S` | Source |
 
 ---
 
@@ -42,13 +35,26 @@ The two set-ups below are *different equations*, not two ways of writing one.
 background, and the potential is Taylor-expanded about it and truncated,
 
 $$
-\mathcal{V}(Q) = Q\\,(B + CQ + GQ^2).
+\mathcal{V}(Q) = Q\,(B + CQ + GQ^2).
 $$
 
 The expansion coefficients then play the role of masses and self-couplings
 (`B`, `C` set the Chameleon sector). This is the set-up of
 [2605.04154](https://arxiv.org/abs/2605.04154), and is what the `B`, `C`, `G`
-arguments mean.
+arguments mean. The kinetic operator is
+
+$$
+\mathcal{K}[Q] = \big[(A + DQ)\,x^2\,Q_x + E\,x^2\,Q\,Q_x - 2F\,x\,Q_x^2\big]_x ,
+$$
+
+so the remaining arguments carry the mechanisms:
+
+| Coefficient | Physics |
+|---|---|
+| `A` | Linear kinetic term |
+| `D`, `E` | Phaedrus screening |
+| `F` | Vainshtein screening |
+| `S` | Source |
 
 **Full field.** $Q$ is the scalar itself, not a perturbation, and
 $\mathcal{V}$ is supplied directly as an arbitrary callable `source_fn(x, Q)`
@@ -56,14 +62,6 @@ with no expansion. This is necessary whenever the field moves far from its
 background — a deeply screened core or void — or whenever the potential has no
 useful polynomial truncation. In this set-up `B`, `C`, `G` do not apply, and the
 background value is an asymptotic field value rather than a linearisation point.
-
-> **Sign convention.** `source_fn` must be written for
-> $\mathcal{I}' = -x^2[S\tilde\rho + \mathcal{V}(Q)]$ as defined below. A
-> potential written for the opposite convention, $\mathcal{I}' = +x^2 \mathcal{V}$,
-> also requires the sign of `F` to be flipped, since the Vainshtein term enters
-> $\mathcal{I}$ as $-2FxQ_x^2$. Getting this wrong does not fail loudly: it
-> silently solves a different equation, usually one with $\Delta < 0$ over part
-> of the domain, which shows up as the solver exhausting `max_nodes`.
 
 ---
 
@@ -108,7 +106,7 @@ positive profiles spanning many decades.
 Clone the repo and install in editable mode (a virtual environment is recommended):
 
 ```bash
-git clone https://github.com/Hi-COLACode/escut.git
+git clone https://github.com/sergisl/escut.git
 cd escut
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
@@ -145,7 +143,7 @@ If you use this code, please cite the associated paper: [2605.04154](https://arx
 
 For questions or comments, please contact sergi.sirera@port.ac.uk.
 
-> Parts of this codebase were developed with the assistance of large language models. All physics formulations and scientific results were designed and verified by the authors.
+> This codebase has been developed with the assistance of large language models. All physics formulations and scientific results have been verified by the authors.
 
 ---
 
